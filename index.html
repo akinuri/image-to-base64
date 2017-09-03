@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Image to Base64</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<table>
+    <tr>
+        <td>
+            <div id="input" class="empty">
+                <img id="preview" />
+                <input type="file" id="file" />
+                <span id="label">Drop image file <br> <span class="info">(or click to select)</span></span>
+            </div>
+        </td>
+        <td>
+            <textarea id="base64">base64</textarea>
+        </td>
+    </tr>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<script>
+    $("#file").change(function () {
+        convert2base64(this.files[0]);
+    });
+    
+    var input = $("#input");
+    
+    input.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    })
+    .on('dragover dragenter', function() {
+        input.addClass('is-dragover');
+    })
+    .on('dragleave dragend drop', function() {
+        input.removeClass('is-dragover');
+    })
+    .on('drop', function(e) {
+        convert2base64(e.originalEvent.dataTransfer.files[0]);
+    })
+    .on("click", function () {
+        $("#file")[0].click();
+    });
+    
+    function convert2base64(file) {
+        var reader = new FileReader();
+        reader.onloadend = function () {
+            $("#preview").attr("src", reader.result);
+            $("#input").removeClass("empty");
+            $("#input").off("click");
+            $("#label").hide();
+            $("#base64").val(reader.result);
+            setTimeout(function () {
+                $("#base64").css("height", $("#input").height());
+            }, 50);
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>

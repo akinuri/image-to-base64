@@ -1,0 +1,96 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: inherit;
+    line-height: inherit;
+    font-size: inherit;
+    font-family: inherit;
+}
+.noselect {
+    user-select: none;
+}
+
+body {
+    font-family: sans-serif;
+    box-sizing: border-box;
+    background-color: hsl(0, 0%, 90%);
+    font-size: 14px;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 10px;
+}
+table td {
+    padding: 5px;
+}
+
+textarea {
+    padding: 5px;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,.25);
+    width: 400px;
+    height: 200px;
+    overflow: auto;
+    font-family: consolas;
+    font-size: 13px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    resize: none;
+}
+
+#input {
+    position: relative;
+}
+
+#preview {
+    display: block;
+    max-width: 300px;
+    max-height: 300px;
+    background-color: rgba(255,255,255,.25);
+    border: 1px solid silver;
+}
+#input.empty #preview {
+    min-width: 250px;
+    min-height: 200px;
+    max-width: unset;
+    outline: 1px dashed rgba(0,0,0,.2);
+    outline-offset: -10px;
+    border: none;
+}
+#label {
+    position: absolute;
+    top: calc(50% - 44px / 2);
+    left: calc(50% - 127px / 2);
+    color: rgba(0,0,0,.25);
+    padding: 5px 10px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.25;
+}
+#label .info {
+    font-size: .9em;
+    opacity: .75;
+}
+
+#input.empty:hover {
+    cursor: pointer;
+}
+#input.empty:hover #preview {
+    outline: 2px dashed rgba(0,0,0,.3);
+    background-color: rgba(255,255,255,.5);
+}
+#input.empty:hover #label {
+    color: rgba(0,0,0,.5);
+}
+
+#input.is-dragover #preview {
+    outline: 2px dashed rgba(0,160,0,.5);
+}
+#input.is-dragover #label {
+    color: rgba(0,80,0,.5);
+}
+
+#file {
+    display: none;
+}
