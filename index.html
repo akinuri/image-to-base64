@@ -76,9 +76,9 @@
     let base64OutputLength  = $("#base64-output-length");
     let copyBtn             = $("#copy");
     
-    resetBtn.click(() => resetUI(true));
+    resetBtn.click(() => resetUI(true, true));
     
-    function resetUI(clearURL = false) {
+    function resetUI(clearURL = false, clearFile = false) {
         fileDropArea.removeClass("preview-loading");
         fileDropArea.removeClass("preview-loaded");
         fileInputPreview.attr("src", dummyImageSrc);
@@ -86,6 +86,9 @@
         imageURLErrors.html(null);
         base64Output.val(null);
         base64OutputLength.text("0 chars");
+        if (clearFile) {
+            fileInput.val(null);
+        }
     }
     
     fileInput.change(function (e, droppedFiles) {
