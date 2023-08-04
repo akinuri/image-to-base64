@@ -98,6 +98,7 @@ body {
     aspect-ratio: 4 / 2;
     font-family: monospace;
     font-size: 14px;
+    word-break: break-all;
 }
 @media (min-width: 768px) {
     #base64-output {
