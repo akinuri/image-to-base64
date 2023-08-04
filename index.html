@@ -52,6 +52,14 @@
             
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <span id="base64-output-length" class="text-muted ms-2">0 chars</span>
+                <div class="btn-group" role="group" id="base64-output-types">
+                    <input type="radio" class="btn-check" name="btnradio" id="base64-output-type-text" autocomplete="off" checked>
+                    <label class="btn btn-outline-secondary" for="base64-output-type-text">text</label>
+                    <input type="radio" class="btn-check" name="btnradio" id="base64-output-type-img" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="base64-output-type-img">&ltimg&gt</label>
+                    <input type="radio" class="btn-check" name="btnradio" id="base64-output-type-md" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="base64-output-type-md">.md</label>
+                </div>
                 <button type="button" class="btn btn-primary" id="copy">Copy Base64</button>
             </div>
             
@@ -74,6 +82,7 @@
     let resetBtn            = $("#reset");
     let base64Output        = $("#base64-output");
     let base64OutputLength  = $("#base64-output-length");
+    let base64OutputTypeInputs = $("#base64-output-types .btn-check")
     let copyBtn             = $("#copy");
     
     resetBtn.click(() => resetUI(true, true));
@@ -106,11 +115,18 @@
                     });
                 })
                 fileInputPreview.attr("src", base64);
-                base64Output.val(base64);
-                base64OutputLength.text(base64.length.toLocaleString() + " chars");
+                updateBase64Output(getBase64OutputFormatted(base64));
             });
         }
     });
+
+    base64OutputTypeInputs.change(function (e) {
+        if (this.checked) {
+            const base64 = fileInputPreview.attr("src");
+            if (base64 === dummyImageSrc) return
+            updateBase64Output(getBase64OutputFormatted(base64));
+        }
+    })
     
     fileDropArea.on("click", () => fileInput.click());
     
@@ -122,6 +138,26 @@
         reader.readAsDataURL(file);
     }
     
+    function getBase64OutputFormatted(base64){
+        const selectedInputId = base64OutputTypeInputs.filter(":checked").attr('id');
+        const selectedOutputType = selectedInputId.replace('base64-output-type-', '')
+        switch (selectedOutputType) {
+            case 'text':
+                return base64
+            case 'img':
+                return "<img alt=\"\" src=\"" + base64 + "\">"
+            case 'md':
+                return "![](" + base64 + ")"
+            default:
+                console.error(selectedOutputType + ' is unexpected selectedOutputType');
+        }
+    }
+
+    function updateBase64Output(base64formatted){
+        base64Output.val(base64formatted);
+        base64OutputLength.text(base64formatted.length.toLocaleString() + " chars");
+    }
+
     imageURLInput.on("input", () => {
         let url = imageURLInput.val();
         if (url.length != 0) {
