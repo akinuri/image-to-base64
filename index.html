@@ -156,7 +156,18 @@
             );
         }
     })
-    
+
+	$(window).bind("paste", function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		file = e.originalEvent.clipboardData.files[0]
+		var fr = new FileReader();
+		fr.onload = () => {
+			updateBase64Output(fr.result);
+		};
+		fr.readAsDataURL(file);
+	});
+	
     fileDropArea.on("click", () => fileInput.click());
     
     function convertFile2Base64(file, callback) {
