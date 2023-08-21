@@ -112,88 +112,12 @@
     
     resetBtn.click(() => resetUI(true, true));
     
-    function resetUI(clearURL = false, clearFile = false) {
-        fileDropArea.removeClass("preview-loading");
-        fileDropArea.removeClass("preview-loaded");
-        fileInputPreview.attr("src", dummyImageSrc);
-        if (clearURL) imageURLInput.val(null);
-        imageURLErrors.html(null);
-        base64Output.val(null);
-        base64OutputLength.text("0 chars");
-        if (clearFile) {
-            fileInput.val(null);
-        }
-    }
-    
-    fileInput.change(function (e, droppedFiles) {
-        if (droppedFiles) {
-            this.files = droppedFiles;
-        }
+    fileInput.change(function () {
         resetUI(true);
         if (this.files.length) {
-            fileDropArea.addClass("preview-loading");
             convertAndPreview(this.files[0]);
         }
     });
-    
-    base64OutputTypeInputs.change(function (e) {
-        if (this.checked) {
-            const base64 = fileInputPreview.attr("src");
-            if (base64 === dummyImageSrc) return;
-            updateBase64Output(
-                formatBase64(base64, getSelectedOutputType())
-            );
-        }
-    });
-    
-    fileDropArea.on("click", () => fileInput.click());
-    
-    function convertAndPreview(file) {
-        convertFile2Base64(file, (base64) => {
-            fileInputPreview.one("load", () => {
-                setTimeout(() => {
-                    fileDropArea.removeClass("preview-loading");
-                    fileDropArea.addClass("preview-loaded");
-                });
-            })
-            fileInputPreview.attr("src", base64);
-            updateBase64Output(
-                formatBase64(base64, getSelectedOutputType())
-            );
-        });
-    }
-    
-    function convertFile2Base64(file, callback) {
-        let reader = new FileReader();
-        reader.onloadend = function () {
-            callback(reader.result);
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    function getSelectedOutputType() {
-        const inputId = base64OutputTypeInputs.filter(":checked").attr('id');
-        const outputType = inputId.replace('base64-output-type-', '');
-        return outputType;
-    }
-    
-    function formatBase64(base64, type) {
-        switch (type) {
-            case 'text':
-                return base64;
-            case 'img':
-                return `<img alt="" src="${base64}" />`;
-            case 'md':
-                return `![](${base64})`;
-            default:
-                console.error("Unexpected output type: " + type);
-        }
-    }
-    
-    function updateBase64Output(base64) {
-        base64Output.val(base64);
-        base64OutputLength.text(base64.length.toLocaleString() + " chars");
-    }
     
     imageURLInput.on("input", () => {
         let url = imageURLInput.val();
@@ -216,6 +140,8 @@
         }
     });
     
+    fileDropArea.on("click", () => fileInput.click());
+    
     fileDropArea
         .on("drag dragstart dragend dragover dragenter dragleave drop", function (e) {
             e.preventDefault();
@@ -231,7 +157,78 @@
             convertAndPreview(e.originalEvent.dataTransfer.files[0]);
         });
     
+    base64OutputTypeInputs.change(function (e) {
+        if (this.checked) {
+            const base64 = fileInputPreview.attr("src");
+            if (base64 === dummyImageSrc) return;
+            updateBase64Output(
+                formatBase64(base64, getSelectedOutputType())
+            );
+        }
+    });
+    
     copyBtn.on("click", () => navigator.clipboard.writeText(base64Output.val()));
+    
+    function resetUI(clearURL = false, clearFile = false) {
+        fileDropArea.removeClass("preview-loading");
+        fileDropArea.removeClass("preview-loaded");
+        fileInputPreview.attr("src", dummyImageSrc);
+        if (clearURL) imageURLInput.val(null);
+        imageURLErrors.html(null);
+        base64Output.val(null);
+        base64OutputLength.text("0 chars");
+        if (clearFile) {
+            fileInput.val(null);
+        }
+    }
+    
+    function convertAndPreview(file) {
+        fileDropArea.addClass("preview-loading");
+        convertFile2Base64(file, (base64) => {
+            fileInputPreview.one("load", () => {
+                setTimeout(() => {
+                    fileDropArea.removeClass("preview-loading");
+                    fileDropArea.addClass("preview-loaded");
+                });
+            })
+            fileInputPreview.attr("src", base64);
+            updateBase64Output(
+                formatBase64(base64, getSelectedOutputType())
+            );
+        });
+    }
+    
+    function convertFile2Base64(file, callback) {
+        let reader = new FileReader();
+        reader.onloadend = function () {
+            callback(reader.result);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function updateBase64Output(base64) {
+        base64Output.val(base64);
+        base64OutputLength.text(base64.length.toLocaleString() + " chars");
+    }
+    
+    function formatBase64(base64, type) {
+        switch (type) {
+            case 'text':
+                return base64;
+            case 'img':
+                return `<img alt="" src="${base64}" />`;
+            case 'md':
+                return `![](${base64})`;
+            default:
+                console.error("Unexpected output type: " + type);
+        }
+    }
+    
+    function getSelectedOutputType() {
+        const inputId = base64OutputTypeInputs.filter(":checked").attr('id');
+        const outputType = inputId.replace('base64-output-type-', '');
+        return outputType;
+    }
     
 </script>
 
