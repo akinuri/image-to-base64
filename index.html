@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-12 col-md-6">
             
-            <input type="file" id="file" hidden />
+            <input type="file" id="file" accept="image/*" hidden />
             
             <div class="file-drop-area">
                 <img
@@ -129,21 +129,10 @@
         if (droppedFiles) {
             this.files = droppedFiles;
         }
-        resetUI();
+        resetUI(true);
         if (this.files.length) {
             fileDropArea.addClass("preview-loading");
-            convertFile2Base64(this.files[0], (base64) => {
-                fileInputPreview.one("load", () => {
-                    setTimeout(() => {
-                        fileDropArea.removeClass("preview-loading");
-                        fileDropArea.addClass("preview-loaded");
-                    });
-                })
-                fileInputPreview.attr("src", base64);
-                updateBase64Output(
-                    formatBase64(base64, getSelectedOutputType())
-                );
-            });
+            convertAndPreview(this.files[0]);
         }
     });
     
@@ -155,9 +144,24 @@
                 formatBase64(base64, getSelectedOutputType())
             );
         }
-    })
+    });
     
     fileDropArea.on("click", () => fileInput.click());
+    
+    function convertAndPreview(file) {
+        convertFile2Base64(file, (base64) => {
+            fileInputPreview.one("load", () => {
+                setTimeout(() => {
+                    fileDropArea.removeClass("preview-loading");
+                    fileDropArea.addClass("preview-loaded");
+                });
+            })
+            fileInputPreview.attr("src", base64);
+            updateBase64Output(
+                formatBase64(base64, getSelectedOutputType())
+            );
+        });
+    }
     
     function convertFile2Base64(file, callback) {
         let reader = new FileReader();
@@ -194,14 +198,12 @@
     imageURLInput.on("input", () => {
         let url = imageURLInput.val();
         if (url.length != 0) {
-            resetUI();
+            resetUI(false, true);
             fetch(url)
                 .then(res => res.blob())
                 .then(blob => {
-                    let dt = new DataTransfer();
                     let downloadedFile = new File([blob], "download");
-                    dt.items.add(downloadedFile);
-                    fileInput.trigger("change", [dt.files]);
+                    convertAndPreview(downloadedFile);
                 })
                 .catch(error => {
                     imageURLErrors.html(`
@@ -226,7 +228,7 @@
             fileDropArea.removeClass("is-dragover");
         })
         .on("drop", function (e) {
-            fileInput.trigger("change", [e.originalEvent.dataTransfer.files]);
+            convertAndPreview(e.originalEvent.dataTransfer.files[0]);
         });
     
     copyBtn.on("click", () => navigator.clipboard.writeText(base64Output.val()));
