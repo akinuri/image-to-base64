@@ -157,15 +157,12 @@
             convertAndPreview(e.originalEvent.dataTransfer.files[0]);
         });
     
-    $(window).bind("paste", function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        file = e.originalEvent.clipboardData.files[0]
-        var fr = new FileReader();
-        fr.onload = () => {
-            updateBase64Output(fr.result);
-        };
-        fr.readAsDataURL(file);
+    $(window).on("paste", function(e) {
+        if (e.originalEvent.clipboardData.files.length) {
+            e.preventDefault();
+            resetUI(true, true);
+            convertAndPreview(e.originalEvent.clipboardData.files[0]);
+        }
     });
     
     base64OutputTypeInputs.change(function (e) {
