@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-12 col-md-6">
             
-            <input type="file" id="file" hidden />
+            <input type="file" id="file" accept="image/*" hidden />
             
             <div class="file-drop-area">
                 <img
@@ -112,6 +112,74 @@
     
     resetBtn.click(() => resetUI(true, true));
     
+    fileInput.change(function () {
+        resetUI(true);
+        if (this.files.length) {
+            convertAndPreview(this.files[0]);
+        }
+    });
+    
+    imageURLInput.on("input", () => {
+        let url = imageURLInput.val();
+        if (url.length != 0) {
+            resetUI(false, true);
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    let downloadedFile = new File([blob], "download");
+                    convertAndPreview(downloadedFile);
+                })
+                .catch(error => {
+                    imageURLErrors.html(`
+                        <div class="alert alert-danger alert-dismissible mb-0">
+                            <span>${error.message}. Invalid URL, Not Found or blocked by CORS policy.</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `);
+                });
+        }
+    });
+    
+    fileDropArea.on("click", () => fileInput.click());
+    
+    fileDropArea
+        .on("drag dragstart dragend dragover dragenter dragleave drop", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        })
+        .on("dragover dragenter", function () {
+            fileDropArea.addClass("is-dragover");
+        })
+        .on("dragleave dragend drop", function () {
+            fileDropArea.removeClass("is-dragover");
+        })
+        .on("drop", function (e) {
+            convertAndPreview(e.originalEvent.dataTransfer.files[0]);
+        });
+    
+    $(window).bind("paste", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        file = e.originalEvent.clipboardData.files[0]
+        var fr = new FileReader();
+        fr.onload = () => {
+            updateBase64Output(fr.result);
+        };
+        fr.readAsDataURL(file);
+    });
+    
+    base64OutputTypeInputs.change(function (e) {
+        if (this.checked) {
+            const base64 = fileInputPreview.attr("src");
+            if (base64 === dummyImageSrc) return;
+            updateBase64Output(
+                formatBase64(base64, getSelectedOutputType())
+            );
+        }
+    });
+    
+    copyBtn.on("click", () => navigator.clipboard.writeText(base64Output.val()));
+    
     function resetUI(clearURL = false, clearFile = false) {
         fileDropArea.removeClass("preview-loading");
         fileDropArea.removeClass("preview-loaded");
@@ -125,50 +193,21 @@
         }
     }
     
-    fileInput.change(function (e, droppedFiles) {
-        if (droppedFiles) {
-            this.files = droppedFiles;
-        }
-        resetUI();
-        if (this.files.length) {
-            fileDropArea.addClass("preview-loading");
-            convertFile2Base64(this.files[0], (base64) => {
-                fileInputPreview.one("load", () => {
-                    setTimeout(() => {
-                        fileDropArea.removeClass("preview-loading");
-                        fileDropArea.addClass("preview-loaded");
-                    });
-                })
-                fileInputPreview.attr("src", base64);
-                updateBase64Output(
-                    formatBase64(base64, getSelectedOutputType())
-                );
-            });
-        }
-    });
-    
-    base64OutputTypeInputs.change(function (e) {
-        if (this.checked) {
-            const base64 = fileInputPreview.attr("src");
-            if (base64 === dummyImageSrc) return;
+    function convertAndPreview(file) {
+        fileDropArea.addClass("preview-loading");
+        convertFile2Base64(file, (base64) => {
+            fileInputPreview.one("load", () => {
+                setTimeout(() => {
+                    fileDropArea.removeClass("preview-loading");
+                    fileDropArea.addClass("preview-loaded");
+                });
+            })
+            fileInputPreview.attr("src", base64);
             updateBase64Output(
                 formatBase64(base64, getSelectedOutputType())
             );
-        }
-    })
-
-	$(window).bind("paste", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		file = e.originalEvent.clipboardData.files[0]
-		var fr = new FileReader();
-		fr.onload = () => {
-			updateBase64Output(fr.result);
-		};
-		fr.readAsDataURL(file);
-	});
-	
-    fileDropArea.on("click", () => fileInput.click());
+        });
+    }
     
     function convertFile2Base64(file, callback) {
         let reader = new FileReader();
@@ -178,10 +217,9 @@
         reader.readAsDataURL(file);
     }
     
-    function getSelectedOutputType() {
-        const inputId = base64OutputTypeInputs.filter(":checked").attr('id');
-        const outputType = inputId.replace('base64-output-type-', '');
-        return outputType;
+    function updateBase64Output(base64) {
+        base64Output.val(base64);
+        base64OutputLength.text(base64.length.toLocaleString() + " chars");
     }
     
     function formatBase64(base64, type) {
@@ -197,50 +235,11 @@
         }
     }
     
-    function updateBase64Output(base64) {
-        base64Output.val(base64);
-        base64OutputLength.text(base64.length.toLocaleString() + " chars");
+    function getSelectedOutputType() {
+        const inputId = base64OutputTypeInputs.filter(":checked").attr('id');
+        const outputType = inputId.replace('base64-output-type-', '');
+        return outputType;
     }
-    
-    imageURLInput.on("input", () => {
-        let url = imageURLInput.val();
-        if (url.length != 0) {
-            resetUI();
-            fetch(url)
-                .then(res => res.blob())
-                .then(blob => {
-                    let dt = new DataTransfer();
-                    let downloadedFile = new File([blob], "download");
-                    dt.items.add(downloadedFile);
-                    fileInput.trigger("change", [dt.files]);
-                })
-                .catch(error => {
-                    imageURLErrors.html(`
-                        <div class="alert alert-danger alert-dismissible mb-0">
-                            <span>${error.message}. Invalid URL, Not Found or blocked by CORS policy.</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `);
-                });
-        }
-    });
-    
-    fileDropArea
-        .on("drag dragstart dragend dragover dragenter dragleave drop", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        })
-        .on("dragover dragenter", function () {
-            fileDropArea.addClass("is-dragover");
-        })
-        .on("dragleave dragend drop", function () {
-            fileDropArea.removeClass("is-dragover");
-        })
-        .on("drop", function (e) {
-            fileInput.trigger("change", [e.originalEvent.dataTransfer.files]);
-        });
-    
-    copyBtn.on("click", () => navigator.clipboard.writeText(base64Output.val()));
     
 </script>
 
