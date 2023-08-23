@@ -157,6 +157,17 @@
             convertAndPreview(e.originalEvent.dataTransfer.files[0]);
         });
     
+    $(window).bind("paste", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        file = e.originalEvent.clipboardData.files[0]
+        var fr = new FileReader();
+        fr.onload = () => {
+            updateBase64Output(fr.result);
+        };
+        fr.readAsDataURL(file);
+    });
+    
     base64OutputTypeInputs.change(function (e) {
         if (this.checked) {
             const base64 = fileInputPreview.attr("src");
