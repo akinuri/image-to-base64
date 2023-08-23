@@ -56,7 +56,9 @@ fileDropArea
         fileDropArea.removeClass("is-dragover");
     })
     .on("drop", function (e) {
-        convertAndPreview(e.originalEvent.dataTransfer.files[0]);
+        if (e.originalEvent.dataTransfer.files.length) {
+            convertAndPreview(e.originalEvent.dataTransfer.files[0]);
+        }
     });
 
 $(window).on("paste", function(e) {
